@@ -1,4 +1,13 @@
+use actix_files::Files;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use dotenvy::dotenv;
+
+mod db;
+mod models;
+mod handlers;
+mod markdown_processor;
+
+use handlers::post_handler::{create_post, get_posts};
 
 #[get("/")]
 async fn health_check() -> impl Responder {
@@ -7,11 +16,20 @@ async fn health_check() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+    
+    let pool = db::create_pool();
+    db::init_db(&pool).await;
+
     println!("🚀 Server started successfully");
 
     HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(pool.clone()))
             .service(health_check)
+            .service(create_post)
+            .service(get_posts)
+            .service(Files::new("/static", "static").show_files_listing())
     })
     .bind("0.0.0.0:8080")?
     .run()
