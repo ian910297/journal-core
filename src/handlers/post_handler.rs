@@ -1,7 +1,6 @@
-use actix_web::{get, post, delete, web, HttpResponse, Responder};
+use actix_web::{get, web, HttpResponse, Responder};
 use deadpool_postgres::Pool;
-use crate::models::{CreatePost, Post, Pagination};
-use crate::markdown_processor;
+use crate::models::{Post, Pagination};
 
 #[get("/api/posts")]
 pub async fn get_posts(pool: web::Data<Pool>, pagination: web::Query<Pagination>) -> impl Responder {
@@ -27,51 +26,29 @@ pub async fn get_posts(pool: web::Data<Pool>, pagination: web::Query<Pagination>
     HttpResponse::Ok().json(posts)
 }
 
-#[post("/api/posts")]
-pub async fn create_post(pool: web::Data<Pool>, new_post: web::Json<CreatePost>) -> impl Responder {
-    let processed_content = match markdown_processor::process_markdown(&new_post.content).await {
-        Ok(content) => content,
-        Err(_) => return HttpResponse::InternalServerError().body("Failed to process markdown"),
-    };
-
+#[get("/api/posts/{id}")]
+pub async fn get_post_by_id(pool: web::Data<Pool>, id: web::Path<i32>) -> impl Responder {
     let client = match pool.get().await {
         Ok(client) => client,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
     let row = match client
-        .query_one(
-            "INSERT INTO posts (title, content) VALUES ($1, $2) RETURNING *",
-            &[&new_post.title, &processed_content],
-        )
+        .query_one("SELECT * FROM posts WHERE id = $1", &[&id.into_inner()])
         .await
     {
         Ok(row) => row,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Err(e) => {
+            if let Some(db_err) = e.as_db_error() {
+                if db_err.code() == &tokio_postgres::error::SqlState::NO_DATA {
+                    return HttpResponse::NotFound().finish();
+                }
+            }
+            // For any other error, return a generic server error
+            return HttpResponse::InternalServerError().finish();
+        }
     };
 
     let post = Post::from(row);
-    HttpResponse::Created().json(post)
-}
-
-#[delete("/api/posts/{id}")]
-pub async fn delete_post(pool: web::Data<Pool>, id: web::Path<i32>) -> impl Responder {
-    let client = match pool.get().await {
-        Ok(client) => client,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
-
-    let result = match client
-        .execute("DELETE FROM posts WHERE id = $1", &[&id.into_inner()])
-        .await
-    {
-        Ok(result) => result,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
-
-    if result == 0 {
-        HttpResponse::NotFound().finish()
-    } else {
-        HttpResponse::NoContent().finish()
-    }
+    HttpResponse::Ok().json(post)
 }

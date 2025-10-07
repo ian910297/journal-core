@@ -7,7 +7,7 @@ mod models;
 mod handlers;
 mod markdown_processor;
 
-use handlers::post_handler::{create_post, get_posts, delete_post};
+use handlers::post_handler::{get_posts, get_post_by_id};
 
 #[get("/")]
 async fn health_check() -> impl Responder {
@@ -27,9 +27,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .service(health_check)
-            .service(create_post)
             .service(get_posts)
-            .service(delete_post)
+            .service(get_post_by_id)
             .service(Files::new("/static", "static").show_files_listing())
     })
     .bind("0.0.0.0:8080")?
