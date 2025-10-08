@@ -10,9 +10,6 @@ mod markdown_processor;
 use handlers::post_handler::{
     get_posts,
     get_post_by_uuid,
-    create_post,
-    update_post,
-    delete_post,
 };
 use handlers::asset_handler::{
     get_asset,
@@ -36,26 +33,23 @@ async fn main() -> std::io::Result<()> {
 
     println!("🚀 Server started successfully");
     println!("📍 Health check: http://localhost:8080/");
-    println!("📚 API endpoints:");
+    println!("📚 API endpoints (Read-Only):");
     println!("   GET    /api/posts           - 取得文章列表");
     println!("   GET    /api/posts/:uuid     - 取得單一文章");
-    println!("   POST   /api/posts           - 新增文章");
-    println!("   PUT    /api/posts/:uuid     - 更新文章");
-    println!("   DELETE /api/posts/:uuid     - 刪除文章");
     println!("   GET    /api/assets/:uuid    - 取得資源檔案");
     println!("   GET    /api/posts/:uuid/assets - 取得文章的所有資源");
+    println!();
+    println!("💡 使用 CLI 進行文章管理：");
+    println!("   cargo run --bin journal_cli -- add -t 'Title' -f post.md");
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             // Health check
             .service(health_check)
-            // Post endpoints
+            // Post endpoints (Read-Only)
             .service(get_posts)
             .service(get_post_by_uuid)
-            .service(create_post)
-            .service(update_post)
-            .service(delete_post)
             // Asset endpoints
             .service(get_asset)
             .service(get_post_assets)

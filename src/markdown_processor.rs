@@ -25,7 +25,13 @@ pub struct DownloadedAsset {
 pub async fn process_markdown(
     content: &str,
     post_id: i32,
+    api_base_url: Option<&str>,
 ) -> Result<(String, Vec<DownloadedAsset>), Box<dyn std::error::Error + Send + Sync>> {
+    // 優先使用傳入的參數，否則嘗試從環境變數讀取
+    let base_url = match api_base_url {
+        Some(url) => url.to_string(),
+        None => std::env::var("API_BASE_URL").unwrap_or_default(),
+    };
     fs::create_dir_all(UPLOADS_DIR).await?;
 
     let client = Client::new();
@@ -56,8 +62,12 @@ pub async fn process_markdown(
     for result in results {
         match result {
             Ok((original_url, Ok(Some(asset)))) => {
-                // 使用 /api/assets/{uuid} 格式的路徑
-                let api_path = format!("/api/assets/{}", asset.asset_uuid);
+                // 使用完整 URL 或相對路徑
+                let api_path = if base_url.is_empty() {
+                    format!("/api/assets/{}", asset.asset_uuid)
+                } else {
+                    format!("{}/api/assets/{}", base_url, asset.asset_uuid)
+                };
                 url_map.insert(original_url, api_path);
                 assets.push(asset);
             }

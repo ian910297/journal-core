@@ -113,7 +113,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             let mut content = String::new();
             fs::File::open(file)?.read_to_string(&mut content)?;
             // 使用假的 post_id 進行測試
-            let (processed_content, assets) = markdown_processor::process_markdown(&content, 0).await?;
+            let (processed_content, assets) = markdown_processor::process_markdown(&content, 0, None).await?;
             println!("=== Processed Content ===\n{}\n", processed_content);
             println!("=== Downloaded Assets ===");
             for asset in assets {
@@ -145,8 +145,8 @@ async fn add_post(pool: &Pool, title: String, content: String) -> Result<Uuid, B
     let post_id: i32 = row.get("id");
     let post_uuid: Uuid = row.get("uuid");
     
-    // 處理 markdown 並下載資源
-    let (processed_content, assets) = markdown_processor::process_markdown(&content, post_id).await?;
+    // CLI 使用相對路徑（因為通常在同一伺服器）
+    let (processed_content, assets) = markdown_processor::process_markdown(&content, post_id, None).await?;
     
     // 更新 post 的內容
     client.execute(
@@ -218,7 +218,7 @@ async fn update_post(pool: &Pool, uuid: Uuid, title: Option<String>, content: Op
 
     if let Some(c) = &content {
         // 處理 markdown
-        let (processed_content, assets) = markdown_processor::process_markdown(c, post_id).await?;
+        let (processed_content, assets) = markdown_processor::process_markdown(c, post_id, None).await?;
         owned_strings.push(processed_content);
         updates.push(format!("content = ${}", param_idx));
         params.push(owned_strings.last().unwrap());
