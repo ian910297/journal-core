@@ -44,12 +44,6 @@ pub struct PostAsset {
 }
 
 #[derive(Deserialize)]
-pub struct CreatePost {
-    pub title: String,
-    pub content: String,
-}
-
-#[derive(Deserialize)]
 pub struct Pagination {
     #[serde(default = "default_page")]
     pub page: u64,

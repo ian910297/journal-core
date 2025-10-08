@@ -1,20 +1,8 @@
 use actix_files::Files;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use dotenvy::dotenv;
-
-mod db;
-mod models;
-mod handlers;
-mod markdown_processor;
-
-use handlers::post_handler::{
-    get_posts,
-    get_post_by_uuid,
-};
-use handlers::asset_handler::{
-    get_asset,
-    get_post_assets,
-};
+use journal_core::common::db;
+use journal_core::api::handlers::{post_handler, asset_handler};
 
 #[get("/")]
 async fn health_check() -> impl Responder {
@@ -26,10 +14,6 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     
     let pool = db::create_pool();
-    
-    // 注意：在生產環境中，不應該每次啟動都初始化資料庫
-    // 這裡僅供開發測試使用
-    // db::init_db(&pool).await;
 
     println!("🚀 Server started successfully");
     println!("📍 Health check: http://localhost:8080/");
@@ -40,20 +24,16 @@ async fn main() -> std::io::Result<()> {
     println!("   GET    /api/posts/:uuid/assets - 取得文章的所有資源");
     println!();
     println!("💡 使用 CLI 進行文章管理：");
-    println!("   cargo run --bin journal_cli -- add -t 'Title' -f post.md");
+    println!("   cargo run --bin cli -- add -t 'Title' -f post.md");
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
-            // Health check
             .service(health_check)
-            // Post endpoints (Read-Only)
-            .service(get_posts)
-            .service(get_post_by_uuid)
-            // Asset endpoints
-            .service(get_asset)
-            .service(get_post_assets)
-            // Static files (僅供開發使用，生產環境建議使用 nginx)
+            .service(post_handler::get_posts)
+            .service(post_handler::get_post_by_uuid)
+            .service(asset_handler::get_asset)
+            .service(asset_handler::get_post_assets)
             .service(Files::new("/static", "static").show_files_listing())
     })
     .bind("0.0.0.0:8080")?

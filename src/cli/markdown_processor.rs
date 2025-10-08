@@ -32,6 +32,7 @@ pub async fn process_markdown(
         Some(url) => url.to_string(),
         None => std::env::var("API_BASE_URL").unwrap_or_default(),
     };
+    
     fs::create_dir_all(UPLOADS_DIR).await?;
 
     let client = Client::new();

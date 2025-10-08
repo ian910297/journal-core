@@ -1,8 +1,7 @@
-use actix_web::{get, post, put, delete, web, HttpResponse, Responder};
+use actix_web::{get, web, HttpResponse, Responder};
 use deadpool_postgres::Pool;
 use uuid::Uuid;
-use crate::models::{Post, PostResponse, Pagination, CreatePost};
-use crate::markdown_processor;
+use crate::common::models::{Post, PostResponse, Pagination};
 
 /// 取得所有文章列表
 /// GET /api/posts?page=1&limit=10
@@ -20,7 +19,7 @@ pub async fn get_posts(
 
     let rows = match client
         .query(
-            "SELECT uuid, title, content, created_at FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+            "SELECT id, uuid, title, content, created_at FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
             &[&(pagination.limit as i64), &(offset as i64)],
         )
         .await
