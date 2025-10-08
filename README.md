@@ -38,3 +38,8 @@
 ```shell
 cargo run --bin journal-core
 ```
+
+build cli
+```shell
+cargo build --bin journal_cli
+```

@@ -14,7 +14,8 @@ pub async fn init_db(pool: &Pool) {
     client
         .batch_execute(
             "
-            CREATE TABLE IF NOT EXISTS posts (
+            DROP TABLE IF EXISTS posts;
+            CREATE TABLE posts (
                 id SERIAL PRIMARY KEY,
                 title VARCHAR NOT NULL,
                 content TEXT NOT NULL,
