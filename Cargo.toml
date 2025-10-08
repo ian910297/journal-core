@@ -19,6 +19,7 @@ path = "src/lib.rs"
 # web API
 actix-files = "0.6.8"
 actix-web = "4.11.0"
+actix-cors = "0.7.1"
 
 # database
 tokio-postgres = { version = "0.7.14", features = ["with-uuid-1", "with-time-0_3"] }
