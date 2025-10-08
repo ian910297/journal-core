@@ -43,3 +43,6 @@ build cli
 ```shell
 cargo build --bin journal_cli
 ```
+
+./target/debug/journal_cli init-db
+./target/debug/journal_cli add --title "My New Blog Post" --file "./example_posts/202004-simd.md"

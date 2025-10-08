@@ -1,11 +1,25 @@
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct Post {
     pub id: i32,
+    pub uuid: Uuid,
     pub title: String,
     pub content: String,
+    pub created_at: SystemTime,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PostAsset {
+    pub id: i32,
+    pub post_id: i32,
+    pub asset_uuid: Uuid,
+    pub original_url: String,
+    pub file_path: String,
+    pub content_type: Option<String>,
+    pub file_size: Option<i64>,
     pub created_at: SystemTime,
 }
 
@@ -31,13 +45,28 @@ fn default_limit() -> u64 {
     10
 }
 
-// This is a helper struct for converting from a tokio_postgres::Row
 impl From<tokio_postgres::Row> for Post {
     fn from(row: tokio_postgres::Row) -> Self {
         Post {
             id: row.get("id"),
+            uuid: row.get("uuid"),
             title: row.get("title"),
             content: row.get("content"),
+            created_at: row.get("created_at"),
+        }
+    }
+}
+
+impl From<tokio_postgres::Row> for PostAsset {
+    fn from(row: tokio_postgres::Row) -> Self {
+        PostAsset {
+            id: row.get("id"),
+            post_id: row.get("post_id"),
+            asset_uuid: row.get("asset_uuid"),
+            original_url: row.get("original_url"),
+            file_path: row.get("file_path"),
+            content_type: row.get("content_type"),
+            file_size: row.get("file_size"),
             created_at: row.get("created_at"),
         }
     }
