@@ -2,13 +2,33 @@ use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Post {
     pub id: i32,
     pub uuid: Uuid,
     pub title: String,
     pub content: String,
     pub created_at: SystemTime,
+}
+
+// API Response 結構（不包含內部 ID）
+#[derive(Serialize, Debug)]
+pub struct PostResponse {
+    pub uuid: Uuid,
+    pub title: String,
+    pub content: String,
+    pub created_at: SystemTime,
+}
+
+impl From<Post> for PostResponse {
+    fn from(post: Post) -> Self {
+        PostResponse {
+            uuid: post.uuid,
+            title: post.title,
+            content: post.content,
+            created_at: post.created_at,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

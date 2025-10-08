@@ -45,4 +45,8 @@ cargo build --bin journal_cli
 ```
 
 ./target/debug/journal_cli init-db
+./target/debug/journal_cli list
+./target/debug/journal_cli get -u [UUID]
+./target/debug/journal_cli list-assets -u [UUID]
+./target/debug/journal_cli delete -u [UUID]
 ./target/debug/journal_cli add --title "My New Blog Post" --file "./example_posts/202004-simd.md"
