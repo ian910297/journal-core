@@ -4,6 +4,9 @@
   cargo run --bin journal_cli add --title "My New Blog Post" --file "path/to/your/markdown_file.md"
   ```
 
+  cargo run --bin journal_cli add --title "My New Blog Post" --file "./example_posts/202004-simd.md"
+
+
 - __List posts:__
 
   ```bash

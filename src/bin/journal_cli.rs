@@ -54,6 +54,13 @@ enum Commands {
         #[arg(short, long)]
         id: i32,
     },
+    /// Initialize the database
+    InitDb,
+    /// Process a markdown file and print the result without saving to the database
+    TestMarkdown {
+        #[arg(short, long)]
+        file: String,
+    },
 }
 
 #[tokio::main]
@@ -88,6 +95,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         Commands::Delete { id } => {
             delete_post(&pool, *id).await?;
             println!("Blog post with ID {} deleted successfully.", id);
+        }
+        Commands::InitDb => {
+            db::init_db(&pool).await;
+            println!("Database initialized successfully.");
+        }
+        Commands::TestMarkdown { file } => {
+            let mut content = String::new();
+            fs::File::open(file)?.read_to_string(&mut content)?;
+            let processed_content = markdown_processor::process_markdown(&content).await?;
+            println!("{}", processed_content);
         }
     }
 
